@@ -1,16 +1,26 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Op } from 'sequelize';
+import { FindOptions, Op } from 'sequelize';
 import { CreateUserDto } from 'src/dto/createUser.dto';
 import { User } from 'src/models/user.model';
 import * as shortid from 'shortid'
 import * as bcrypt from 'bcrypt'
 
-import config from '../config'
 
 @Injectable()
 export class UserService {
     constructor(@InjectModel(User) private userModel: typeof User){}
+
+    findOneById(id: string): Promise<User> {
+        return this.userModel.findOne({
+          where: {
+            id
+          }
+        });
+    }
+    findOneByParamsObject(params: FindOptions): Promise<User>{
+        return this.userModel.findOne( params )
+    }
 
     async getAllUsers(): Promise<User[]>{
         return this.userModel.findAll()
@@ -28,11 +38,9 @@ export class UserService {
         })
         if(candidate) throw new BadRequestException('User with this email or nickname already exist')
 
-        
-       
         try {
             role = role || 'common'
-            password = await bcrypt.hash(config.password_hash, 12)
+            password = await bcrypt.hash(password, 12)
             
             const user = User.build({
                 id: shortid.generate(),
@@ -66,5 +74,12 @@ export class UserService {
         //email validation and etc
         return 'OK'
     }
+
+    async deleteUserById(id: string){
+        const user = await this.findOneById(id)
+        if(!user) throw new BadRequestException('User could not be found')
+        await user.destroy()
+    }
+   
 }
 

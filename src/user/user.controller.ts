@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Post, Res } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Res } from '@nestjs/common';
 import { CreateUserDto } from 'src/dto/createUser.dto';
 import { UserService } from './user.service';
 
@@ -12,12 +12,17 @@ export class UserController {
         return this.userService.getAllUsers()
     }
 
-    @Post()
+    @Post('create')
     async createUser(@Body() createUserDto: CreateUserDto) {
         let result = await this.userService.createNewUser(createUserDto)
         if(result.state !== 'OK'){
             throw new BadRequestException(result.message)
         }
         return []
+    }
+
+    @Delete('delete/:id')
+    async deleteUser(@Param('id') id: string){
+        return this.userService.deleteUserById(id)
     }
 }

@@ -6,6 +6,7 @@ import { UserModule } from './user/user.module';
 import { ProfileModule } from './profile/profile.module';
 import { AdminModule } from './admin/admin.module';
 import { SequelizeModule } from '@nestjs/sequelize';
+import { GoodsModule } from './goods/goods.module';
 
 @Module({
   imports: [
@@ -23,7 +24,8 @@ import { SequelizeModule } from '@nestjs/sequelize';
       autoLoadModels:true,
       synchronize:true,
       logging: true
-  })
+  }),
+  GoodsModule
   ],
   controllers: [AppController],
   providers: [AppService],
