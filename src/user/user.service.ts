@@ -5,6 +5,7 @@ import { CreateUserDto } from 'src/dto/createUser.dto';
 import { User } from 'src/models/user.model';
 import * as shortid from 'shortid'
 import * as bcrypt from 'bcrypt'
+import { Goods } from 'src/models/goods.model';
 
 
 @Injectable()
@@ -23,14 +24,14 @@ export class UserService {
     }
 
     async getAllUsers(): Promise<User[]>{
-        return this.userModel.findAll()
+        return this.userModel.findAll({include:[Goods]})
     }
 
     async createNewUser(createUserDto: CreateUserDto){
         const validated = this.password_login_validate(createUserDto)
         if(validated !== 'OK') throw new BadRequestException(validated.message)
 
-        let {username, email, password, role} = createUserDto
+        let {username, email, password} = createUserDto
         const candidate = await this.userModel.findOne({
             where:{
                 [Op.or]:[{email},{username}]
@@ -39,7 +40,7 @@ export class UserService {
         if(candidate) throw new BadRequestException('User with this email or nickname already exist')
 
         try {
-            role = role || 'common'
+            let role = 'common'
             password = await bcrypt.hash(password, 12)
             
             const user = User.build({
@@ -53,7 +54,6 @@ export class UserService {
             await user.save()
             return {message:'User successfully created', state:'OK'};
         } catch (e) {
-            console.log(e)
             return {message:"Failure to create user", state:'NOK'}
         }
 
@@ -74,12 +74,11 @@ export class UserService {
         //email validation and etc
         return 'OK'
     }
-
     async deleteUserById(id: string){
         const user = await this.findOneById(id)
         if(!user) throw new BadRequestException('User could not be found')
         await user.destroy()
     }
-   
+    
 }
 

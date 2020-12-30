@@ -4,8 +4,9 @@ import { User } from "./user.model";
 @Table({tableName:'goods'})
 export class Goods extends Model<Goods>{
 
+    
     @PrimaryKey
-    @Column(DataType.STRING)
+    @Column
     id: string;
 
     @AllowNull(false)
@@ -28,6 +29,15 @@ export class Goods extends Model<Goods>{
     @Column
     amount: number;
 
+    @BelongsTo(() => User)
+    user: User;
+  
+    @ForeignKey(() => User)
+    @Column({
+      type: DataType.STRING,
+      allowNull: false,
+    })
+    userId: any;
 
     @CreatedAt
     @Column

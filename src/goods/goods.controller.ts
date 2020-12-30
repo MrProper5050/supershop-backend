@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Req } from '@nestjs/common';
+import { Request } from 'express';
 import { CreateItemDto } from 'src/dto/createItem.dto';
 import { GoodsService } from './goods.service';
 
@@ -17,8 +18,9 @@ export class GoodsController {
     }
 
     @Post('create')
-    async createNewItem(@Body() createItemDto: CreateItemDto){
-        return await this.goodsService.addItem(createItemDto)
+    async createNewItem(@Body() createItemDto: CreateItemDto, @Req()req: Request){
+        let token = req.signedCookies['access_token']  
+        return await this.goodsService.addItem(createItemDto, token)
     }
 
     @Delete('delete/:id')

@@ -1,11 +1,11 @@
-import { BelongsTo, Column, CreatedAt, DataType, Model, PrimaryKey, Table, UpdatedAt } from "sequelize-typescript";
+import { Column, CreatedAt, DataType, HasMany, Model, PrimaryKey, Table, UpdatedAt } from "sequelize-typescript";
 import { Goods } from "./goods.model";
 
 @Table({tableName:'users'})
 export class User extends Model<User>{
 
     @PrimaryKey
-    @Column(DataType.STRING)
+    @Column
     id: string;
 
     @Column
@@ -24,10 +24,10 @@ export class User extends Model<User>{
     balance: number;
 
     @Column(DataType.ARRAY(DataType.JSON))
-    purchased_goods: any
+    purchasedGoods: any
 
-    // @BelongsTo(()=> Goods)
-    // myGoods: Goods
+    @HasMany(()=> Goods)
+    myGoods: Goods[]
 
     @CreatedAt
     @Column
