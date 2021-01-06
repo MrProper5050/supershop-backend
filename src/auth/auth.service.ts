@@ -23,7 +23,10 @@ export class AuthService {
 
     async loginUser(loginUserDto: LoginUserDto) {
         let {password, userName_or_Email} = loginUserDto
-
+        if (typeof userName_or_Email === 'undefined' || typeof password === 'undefined') {
+            throw new BadRequestException('Invalid password or login')
+            
+        }
         const user = await this.userService.findOneByParamsObject({
             where:{
                 [Op.or]: [{username: userName_or_Email}, {email: userName_or_Email}]

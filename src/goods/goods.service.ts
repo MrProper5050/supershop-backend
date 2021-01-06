@@ -7,13 +7,21 @@ import * as shortid from 'shortid'
 import * as jwt from 'jsonwebtoken'
 import {config} from '../config'
 import { User } from 'src/models/user.model';
+import { Orders } from 'src/models/orders.model';
+import { UserService } from 'src/user/user.service';
 
 
 @Injectable()
 export class GoodsService {
-    constructor(@InjectModel(Goods) private goodsModel: typeof Goods, @InjectModel(User) private userModel: typeof User){}
+    constructor(
+        @InjectModel(Goods) private goodsModel: typeof Goods, 
+        @InjectModel(User) private userModel: typeof User, 
+        @InjectModel(Orders) private ordersModel: typeof Orders,
+        private readonly userService: UserService
+    ){}
 
     async addItem(createItemDto: CreateItemDto, token) {
+        console.log("HI")
         let user;
         let candidate:User;
         // get user data from token
@@ -31,11 +39,12 @@ export class GoodsService {
                 }, 
                 include:[Goods]
             }) 
+            console.log("candidate.role", candidate.role)
             if(candidate.role === 'common') throw ''
             
         } catch (e) {
             console.log(e)
-            throw new BadRequestException("You can't add goods" )
+            throw new BadRequestException("You can't add goods")
         }
 
         
@@ -43,8 +52,6 @@ export class GoodsService {
         try {
             const id = shortid.generate()
             await this.goodsModel.create({ ...createItemDto, id, userId: user.id})
-
-
             return 'OK'
         } catch (error) {
             throw new InternalServerErrorException('Failure to create new item')
@@ -57,7 +64,13 @@ export class GoodsService {
     }
 
     async getItemById(id: string): Promise<Goods>{
-        return this.goodsModel.findOne({ where:{ id } })
+
+        try {
+            return this.goodsModel.findOne({ where:{ id } })
+        } catch (e) {
+            throw new BadRequestException('Find Goods ERROR')
+        }
+        
     }
 
     async updateItem(){
@@ -68,6 +81,41 @@ export class GoodsService {
         const item = await this.getItemById(id)
         await item.destroy()
         return 'OK'
+    }
+
+
+    async generateOrder(generateOrderDto: GenerateOrderDto){
+
+        //find this item
+        if(
+        typeof generateOrderDto.itemId === 'undefined' || 
+        typeof generateOrderDto.itemTitle === 'undefined' || 
+        typeof generateOrderDto.amount === 'undefined' ||
+        generateOrderDto.amount <= 0
+        )
+        {
+            throw new BadRequestException('Invalid data')
+        }
+
+        const item = await this.getItemById( generateOrderDto.itemId )
+        if(!item) throw new BadRequestException("Cannot find item")
+        console.log(item)
+
+        try {
+            const id = shortid.generate();
+            await this.ordersModel.create({
+               id, 
+               userId: item.userId, 
+               info:{ ...generateOrderDto }
+            })
+        } catch (error) {
+            throw new InternalServerErrorException('Cannot generate order')
+        }
+        
+
+
+
+
     }
 
 }

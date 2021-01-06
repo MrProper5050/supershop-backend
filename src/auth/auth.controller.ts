@@ -1,4 +1,5 @@
-import { Body, Controller, Post, Res } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Post, Res } from '@nestjs/common';
+import { create } from 'domain';
 import { Response } from 'express';
 import { CreateUserDto } from 'src/dto/createUser.dto';
 import LoginUserDto from 'src/dto/loginUser.dto';
@@ -18,6 +19,9 @@ export class AuthController {
 
     @Post('signup')
     async registration(@Body() createUserDto: CreateUserDto){
+        if(createUserDto.role !== 'common' && createUserDto.role !== 'seller' ){
+            throw new BadRequestException('Role error')
+        }
         return await this.authService.registrateNewUser(createUserDto)
     }
 

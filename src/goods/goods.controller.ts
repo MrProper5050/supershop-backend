@@ -17,7 +17,7 @@ export class GoodsController {
         return await this.goodsService.getItemById(id)
     }
 
-    @Post('create')
+    @Post('s/create')
     async createNewItem(@Body() createItemDto: CreateItemDto, @Req()req: Request){
         let token = req.signedCookies['access_token']  
         return await this.goodsService.addItem(createItemDto, token)
@@ -26,6 +26,14 @@ export class GoodsController {
     @Delete('delete/:id')
     async delteItem(@Param('id') id: string){
         return await this.goodsService.deleteItemById(id)
+    }
+
+
+    @Post('order')
+    async generateOrder(@Body() generateOrderDto: GenerateOrderDto){
+        return await this.goodsService.generateOrder(generateOrderDto)
+
+
     }
 
 }

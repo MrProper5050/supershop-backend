@@ -1,5 +1,6 @@
 import { Column, CreatedAt, DataType, HasMany, Model, PrimaryKey, Table, UpdatedAt } from "sequelize-typescript";
 import { Goods } from "./goods.model";
+import { Orders } from "./orders.model";
 
 @Table({tableName:'users'})
 export class User extends Model<User>{
@@ -28,6 +29,9 @@ export class User extends Model<User>{
 
     @HasMany(()=> Goods)
     myGoods: Goods[]
+
+    @HasMany(()=> Orders)
+    orders: Orders[]
 
     @CreatedAt
     @Column

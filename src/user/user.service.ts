@@ -6,6 +6,7 @@ import { User } from 'src/models/user.model';
 import * as shortid from 'shortid'
 import * as bcrypt from 'bcrypt'
 import { Goods } from 'src/models/goods.model';
+import { Orders } from 'src/models/orders.model';
 
 
 @Injectable()
@@ -24,14 +25,14 @@ export class UserService {
     }
 
     async getAllUsers(): Promise<User[]>{
-        return this.userModel.findAll({include:[Goods]})
+        return this.userModel.findAll({include:[Goods, Orders]})
     }
 
     async createNewUser(createUserDto: CreateUserDto){
         const validated = this.password_login_validate(createUserDto)
         if(validated !== 'OK') throw new BadRequestException(validated.message)
 
-        let {username, email, password} = createUserDto
+        let {username, email, password, role} = createUserDto
         const candidate = await this.userModel.findOne({
             where:{
                 [Op.or]:[{email},{username}]
@@ -40,7 +41,6 @@ export class UserService {
         if(candidate) throw new BadRequestException('User with this email or nickname already exist')
 
         try {
-            let role = 'common'
             password = await bcrypt.hash(password, 12)
             
             const user = User.build({
