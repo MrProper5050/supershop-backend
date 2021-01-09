@@ -18,7 +18,7 @@ export class UserService {
             return this.userModel.findOne({
                 where: {
                   id
-                }
+                },include:[{all:true}]
             });
         } catch (error) {
             throw new InternalServerErrorException('Cannot find user')

@@ -9,6 +9,9 @@ import {config} from '../config'
 import { User } from 'src/models/user.model';
 import { Orders } from 'src/models/orders.model';
 import { UserService } from 'src/user/user.service';
+import ChangeItemDto from 'src/dto/changeItem.dto';
+import { UserObject } from 'src/dto/userObject.dto';
+import { Op } from 'sequelize';
 
 
 @Injectable()
@@ -73,7 +76,41 @@ export class GoodsService {
         
     }
 
-    async updateItem(){
+    async updateItem(changeItemDto: ChangeItemDto, userObj: UserObject){
+
+        //find user wich has this product
+        //compare userObj with founded user
+        //if alright => change item
+        const user = await this.userService.findOneById(userObj.id);
+
+        for (const product of user.myGoods) {
+            console.log('product.id',product.id)
+            if(product.id === changeItemDto.itemId){
+                console.log('2product.id',product.id)
+                //yeah, it is good user
+                if (Object.keys(changeItemDto.whatChanging == null || changeItemDto.whatChanging).length == 0) throw  new BadRequestException("Changing params must be")
+                try {
+                    //changing
+                    await this.goodsModel.update(
+                        {
+                            ...changeItemDto.whatChanging
+                        },
+                        {
+                            where:{ 
+                                id: product.id
+                            }
+                    })
+                    return 'OK'
+
+                } catch (error) {
+                    throw new InternalServerErrorException('Cannot update item')
+                }
+               
+
+
+            }
+        }
+        throw  new BadRequestException()
 
     }
 

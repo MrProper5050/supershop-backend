@@ -17,7 +17,7 @@ export class AuthMiddleware implements NestMiddleware {
 
       try {
         user = jwt.verify(token, config.jwt_secret)
-        req.user = user
+        
       } catch (e) {
         throw new UnauthorizedException('Invalid token ^2')
       }
@@ -28,6 +28,7 @@ export class AuthMiddleware implements NestMiddleware {
             id: user.id
           }
         })
+        req.user = user
         //alright
         next();
       } catch (error) {

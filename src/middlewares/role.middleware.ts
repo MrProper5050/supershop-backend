@@ -19,38 +19,13 @@ export class RoleMiddleware implements NestMiddleware {
     switch (req.path) {
       //ORDERS
       case '/state':
-      
-        try {
-          candidate = await this.userModel.findOne({
-            where:{
-              id: req.user.id
-            }
-          })
-        
-        } catch (error) {
-          throw new NotFoundException('User not found')
-        }
-
         //alright
         next();
       break;
     
       case '/gen':
 
-        try {
-          candidate = await this.userModel.findOne({
-            where:{
-              id: req.user.id
-            }
-          })
-        
-        } catch (error) {
-          throw new NotFoundException('User not found')
-        }
-
-        console.log(candidate.role)
-
-        if(candidate.role === 'seller' || candidate.role === 'admin'){
+        if(req.user.role === 'seller' || req.user.role === 'admin'){
           throw new BadRequestException('Invalid role')
         }
 
@@ -65,21 +40,8 @@ export class RoleMiddleware implements NestMiddleware {
 
       //ANOTHER
       default:
-       
-        try {
-          
-          candidate = await this.userModel.findOne({
-            where:{
-              id: req.user.id
-            }
-          })
-          
-        
-        } catch (error) {
-          throw new NotFoundException('User not found')
-        }
 
-        if(candidate.role !== 'seller' && candidate.role !== 'admin'){
+        if(req.user.role !== 'seller' && req.user.role !== 'admin'){
           throw new BadRequestException('Invalid role')
         }
 

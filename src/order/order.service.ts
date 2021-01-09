@@ -10,6 +10,7 @@ import { UserService } from 'src/user/user.service';
 import { User } from 'src/models/user.model';
 import { GenerateOrderDto } from 'src/dto/generateOrder.dto';
 import { ChangeOrderStateDto } from 'src/dto/changeOrderState.dto';
+import { UserObject } from 'src/dto/userObject.dto';
 
 @Injectable()
 export class OrderService {
@@ -20,15 +21,18 @@ export class OrderService {
         @InjectModel(Orders) private ordersModel: typeof Orders
         ){}
 
-    async generateOrder(generateOrderDto: GenerateOrderDto, userObj){
+    async generateOrder(generateOrderDto: GenerateOrderDto, userObj: UserObject){
 
         //check to buy from yourself
         await this.checkToBuyFromYourself(userObj)
+        
+        //balance checker
+        await this.balanceChecker(userObj, generateOrderDto)
 
         //find this item
         if(
-        typeof generateOrderDto.itemId === 'undefined'    || 
-        typeof generateOrderDto.itemTitle === 'undefined' || 
+        typeof generateOrderDto.itemId === 'undefined'    ||
+        typeof generateOrderDto.itemTitle === 'undefined' ||
         typeof generateOrderDto.amount === 'undefined'    ||
         generateOrderDto.amount <= 0)
         {
@@ -88,7 +92,7 @@ export class OrderService {
         
     }
 
-    async changeOrderState(changeOrderSateDto: ChangeOrderStateDto, userObject: any){
+    async changeOrderState(changeOrderSateDto: ChangeOrderStateDto, userObject: UserObject){
 
         const user = await this.userService.findOneById(userObject.id)
         if( !user ) throw new BadRequestException('Cannot find user')
@@ -130,7 +134,7 @@ export class OrderService {
 
 ///-----VALIDATORS-----///
 
-    async checkToBuyFromYourself(userObj) {
+    async checkToBuyFromYourself(userObj:UserObject) {
         let user;
     
         user =  await this.userService.findOneById(userObj.id)
@@ -142,6 +146,22 @@ export class OrderService {
         
        
         return 'OK'
+    }
+
+    async balanceChecker(userObj: UserObject, generateOrderDto: GenerateOrderDto){
+        //find in USER table
+        //multiply product amount by price
+        //compare user balance with end price
+        const user = await this.userService.findOneById(userObj.id)
+        const item = await this.goodsService.getItemById( generateOrderDto.itemId )
+        const endPrice = ( item.price * generateOrderDto.amount)
+
+        if(user.balance < endPrice){
+            throw new BadRequestException("Not enough balance");
+        }
+
+        return 'OK'
+        
     }
 }
 
