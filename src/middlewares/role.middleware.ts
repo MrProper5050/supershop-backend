@@ -12,18 +12,17 @@ export class RoleMiddleware implements NestMiddleware {
 
   async use(req: any, res: Response, next: () => void) {
     const token = req.signedCookies['access_token']
-    let candidate:User;
   
-
-    console.log(req.path)
-    switch (req.path) {
+// req.hostname
+    console.log(req.originalUrl)
+    switch (req.originalUrl) {
       //ORDERS
-      case '/state':
+      case 'orders/state':
         //alright
         next();
       break;
     
-      case '/gen':
+      case 'orders/gen':
 
         if(req.user.role === 'seller' || req.user.role === 'admin'){
           throw new BadRequestException('Invalid role')
@@ -34,14 +33,14 @@ export class RoleMiddleware implements NestMiddleware {
       break;
 
       //GOODS
-      case '/getAll':
+      case 'goods/getAll':
         next();
       break;
 
       //ANOTHER
       default:
 
-        if(req.user.role !== 'seller' && req.user.role !== 'admin'){
+        if(req.user.role !== 'seller' && req.user.role !== 'admin') {
           throw new BadRequestException('Invalid role')
         }
 

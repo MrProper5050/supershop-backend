@@ -13,6 +13,7 @@ import { OrderService } from './order.service';
     UserModule
   ],
   controllers: [OrderController],
-  providers: [OrderService]
+  providers: [OrderService],
+  exports:[OrderService]
 })
 export class OrderModule {}

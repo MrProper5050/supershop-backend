@@ -3,11 +3,15 @@ import { create } from 'domain';
 import { Response } from 'express';
 import { CreateUserDto } from 'src/dto/createUser.dto';
 import LoginUserDto from 'src/dto/loginUser.dto';
+import { UserService } from 'src/user/user.service';
 import { AuthService } from './auth.service';
 
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService){}
+    constructor(
+        private readonly authService: AuthService,
+        private readonly userService: UserService
+        ){}
 
     @Post('signin')
     async login(@Body() loginUserDto: LoginUserDto, @Res({passthrough:true}) res: Response){
@@ -15,15 +19,12 @@ export class AuthController {
         const token = await this.authService.loginUser(loginUserDto)
         console.log("token", token)
         res.cookie('access_token', token, { signed:true, httpOnly: true, sameSite:true })
-        return 'OK'
+        return 'OK';
     }
 
     @Post('signup')
     async registration(@Body() createUserDto: CreateUserDto){
-        if(createUserDto.role !== 'common' && createUserDto.role !== 'seller' ){
-            throw new BadRequestException('Role error')
-        }
-        return await this.authService.registrateNewUser(createUserDto)
+        return await this.userService.createNewUser(createUserDto)
     }
 
 }

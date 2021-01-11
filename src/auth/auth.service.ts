@@ -13,14 +13,6 @@ import { Goods } from 'src/models/goods.model';
 export class AuthService {
     constructor(private readonly userService: UserService){}
 
-    async registrateNewUser(createUserDto: CreateUserDto){
-        let result = await this.userService.createNewUser(createUserDto)
-        if(result.state !== 'OK'){
-            throw new BadRequestException(result.message)
-        }
-        return []
-    }
-
     async loginUser(loginUserDto: LoginUserDto) {
         let {password, userName_or_Email} = loginUserDto
         if (typeof userName_or_Email === 'undefined' || typeof password === 'undefined') {

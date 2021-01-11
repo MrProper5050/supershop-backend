@@ -7,6 +7,8 @@ import * as shortid from 'shortid'
 import * as bcrypt from 'bcrypt'
 import { Goods } from 'src/models/goods.model';
 import { Orders } from 'src/models/orders.model';
+import { UserObject } from 'src/dto/userObject.dto';
+import { Add_SubBalance } from 'src/dto/admin/add_subBalance.dto';
 
 
 @Injectable()
@@ -27,7 +29,12 @@ export class UserService {
        
     }
     findOneByParamsObject(params: FindOptions): Promise<User>{
-        return this.userModel.findOne( params )
+        try {
+            return this.userModel.findOne( params )
+        } catch (error) {
+            throw new BadRequestException('Cannot find user')
+        }
+        
     }
 
     async getAllUsers(): Promise<User[]>{
@@ -48,6 +55,43 @@ export class UserService {
         })
         if(candidate) throw new BadRequestException('User with this email or nickname already exist')
 
+        if (role !== 'seller' && role !== 'common') throw new BadRequestException('Invalid param -> role')
+        
+
+        try {
+            password = await bcrypt.hash(password, 12)
+            
+            const user = User.build({
+                id: shortid.generate(),
+                username,
+                email,
+                password,
+                role,
+                balance:0
+            })
+            await user.save()
+            return 'OK';
+        } catch (e) {
+            throw new InternalServerErrorException("Failure to create user")
+            
+        }
+
+    }
+
+    async createNewUser_admin(createUserDto: CreateUserDto){
+        const validated = this.password_login_validate(createUserDto)
+        if(validated !== 'OK') throw new BadRequestException(validated.message)
+
+        let {username, email, password, role} = createUserDto
+        const candidate = await this.userModel.findOne({
+            where:{
+                [Op.or]:[{email},{username}]
+            }
+        })
+        if(candidate) throw new BadRequestException('User with this email or nickname already exist')
+
+        if (role !== 'seller' && role !== 'common' && role !== 'admin') throw new BadRequestException('Invalid param -> role')
+
         try {
             password = await bcrypt.hash(password, 12)
             
@@ -66,6 +110,7 @@ export class UserService {
         }
 
     }
+
     password_login_validate(userObj: CreateUserDto){
         const {username, email, password} = userObj
         console.log(username, email, password)
@@ -88,5 +133,38 @@ export class UserService {
         await user.destroy()
     }
     
+
+    async addBalance(add_SubBalance:Add_SubBalance ){
+        
+        //get user balance
+        //add money
+        let balance = (await this.findOneById(add_SubBalance.userId)).balance;
+        balance += add_SubBalance.howMany
+        try {
+            await this.userModel.update({balance},{where:{id: add_SubBalance.userId}})
+            return 'OK'
+        } catch (error) {
+            throw new InternalServerErrorException('Cannot update user balance')
+        }
+        
+
+    }
+    async subBalance(add_SubBalance:Add_SubBalance ){
+        
+        //get user balance
+        //add money
+        let balance = (await this.findOneById(add_SubBalance.userId)).balance;
+        balance -= add_SubBalance.howMany
+        if(balance <= 0) throw new InternalServerErrorException('User balance is less than zero or equal to zero')
+
+        try {
+            await this.userModel.update({balance},{where:{id: add_SubBalance.userId}})
+            return 'OK'
+        } catch (error) {
+            throw new InternalServerErrorException('Cannot update user balance')
+        }
+        
+
+    }
 }
 

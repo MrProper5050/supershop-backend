@@ -23,23 +23,15 @@ export class GoodsService {
         private readonly userService: UserService
     ){}
 
-    async addItem(createItemDto: CreateItemDto, token) {
-        console.log("HI")
-        let user;
+    async addItem(createItemDto: CreateItemDto, userObj: UserObject) {
         let candidate:User;
         
-        // get user data from token
-        try {
-            user = jwt.verify(token,config.jwt_secret)
-        } catch (e) {
-            throw new BadRequestException('Invalid token')
-        }
-
+       
         //find user
         try { 
             candidate = await this.userModel.findOne({
                 where:{
-                    id: user.id
+                    id: userObj.id
                 }, 
                 include: [Goods]
             }) 
@@ -54,7 +46,7 @@ export class GoodsService {
         
         try {
             const id = shortid.generate()
-            await this.goodsModel.create({ ...createItemDto, id, userId: user.id})
+            await this.goodsModel.create({ ...createItemDto, id, userId: userObj.id })
             return 'OK'
         } catch (error) {
             throw new InternalServerErrorException('Failure to create new item')
